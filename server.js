@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const { Configuration, OpenAIApi } = require('openai');
+const { spawn } = require('child_process');
 
 const app = express();
 const port = 3000;
@@ -8,28 +8,29 @@ const port = 3000;
 // Middleware
 app.use(bodyParser.json());
 
-// OpenAI API setup
-const configuration = new Configuration({
-    apiKey: 'your-openai-api-key', // Replace with your OpenAI API key
-});
-const openai = new OpenAIApi(configuration);
-
 // Endpoint for investment insights
-app.post('/api/investment-insight', async (req, res) => {
+app.post('/api/investment-insight', (req, res) => {
     const { investmentType } = req.body;
 
-    try {
-        const aiResponse = await openai.createCompletion({
-            model: 'text-davinci-003',
-            prompt: `Provide detailed investment insights, current news, and a recommendation (buy/sell) for ${investmentType}.`,
-            max_tokens: 150,
-        });
+    // Spawn a Python process to run the Hugging Face model
+    const pythonProcess = spawn('python3', ['huggingface_model.py', investmentType]);
 
-        res.json({ message: aiResponse.data.choices[0].text.trim() });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching investment insights.' });
-    }
+    let result = '';
+    pythonProcess.stdout.on('data', (data) => {
+        result += data.toString();
+    });
+
+    pythonProcess.stderr.on('data', (data) => {
+        console.error(`Error: ${data}`);
+    });
+
+    pythonProcess.on('close', (code) => {
+        if (code === 0) {
+            res.json({ message: result.trim() });
+        } else {
+            res.status(500).json({ message: 'Error generating investment insights.' });
+        }
+    });
 });
 
 // Start server
