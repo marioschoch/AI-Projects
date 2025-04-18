@@ -9,7 +9,7 @@ The Invest-Advice project is designed to provide users with valuable insights an
 - Regular updates with the latest market trends and insights
 
 ## Live Demo
-Check out the live version of the website: [Invest-Advice](https://marioschoch.github.io/AI-Project)
+Check out the live version of the website: [Invest-Advice](https://marioschoch.github.io/AI-Projects)
 
 ## Setup Instructions
 1. Clone the repository to your local machine using:
